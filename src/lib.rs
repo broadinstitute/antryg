@@ -1,5 +1,9 @@
+use crate::scalar::var;
+
 mod scalar;
 
-pub fn hello() {
+pub fn example() {
+    let x = var('x');
+    let y = var('y');
     println!("Hello, world!")
 }

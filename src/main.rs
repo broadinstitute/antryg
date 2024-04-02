@@ -1,5 +1,5 @@
-use antryg::hello;
+use antryg::example;
 
 fn main() {
-  hello();
+  example();
 }
