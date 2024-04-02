@@ -22,6 +22,9 @@ impl From<u64> for Scalar {
 
 impl From<char> for Scalar {
     fn from(symbol: char) -> Self {
-
+        Scalar::Elem(Elem::from(symbol))
     }
 }
+
+pub fn var(symbol: char) -> Scalar { Scalar::from(symbol) }
+pub fn num(number: u64) -> Scalar { Scalar::from(number) }
