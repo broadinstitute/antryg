@@ -5,5 +5,6 @@ mod scalar;
 pub fn example() {
     let x = var('x');
     let y = var('y');
-    println!("Hello, world!")
+    println!("x = {x}");
+    println!("y = {y}");
 }

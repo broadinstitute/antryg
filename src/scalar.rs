@@ -1,9 +1,13 @@
-use std::fmt::{Display, Formatter, Pointer};
+use std::fmt::{Display, Formatter};
 use std::ops::{Add, Div, Mul, Sub};
 use crate::scalar::elem::Elem;
 
 mod var;
 mod elem;
+
+pub enum Precedence {
+    Low, High
+}
 
 #[derive(Clone, Copy, Eq, PartialEq)]
 pub enum InfixOp {
@@ -25,6 +29,17 @@ pub enum Scalar {
     Elem(Elem),
     Num(u64),
     Infix(InfixTerm),
+}
+
+impl InfixOp {
+    pub fn precedence(&self) -> Precedence {
+        match self {
+            InfixOp::Plus => { Precedence::Low }
+            InfixOp::Minus => { Precedence::Low }
+            InfixOp::Times => { Precedence::High }
+            InfixOp::Over => { Precedence::High }
+        }
+    }
 }
 
 impl Scalar {
@@ -105,9 +120,39 @@ impl Display for Scalar {
                         Scalar::Elem(_) => { false }
                         Scalar::Num(_) => { false }
                         Scalar::Infix(InfixTerm{ op: lhs_op, ..}) => {
-
+                            match (op.precedence(), lhs_op.precedence()) {
+                                (Precedence::Low, Precedence::Low) => { false }
+                                (Precedence::Low, Precedence::High) => { false }
+                                (Precedence::High, Precedence::Low) => { true }
+                                (Precedence::High, Precedence::High) => { false }
+                            }
                         }
                     };
+                let rhs_needs_parens =
+                    match rhs.as_ref() {
+                        Scalar::Elem(_) => { false }
+                        Scalar::Num(_) => { false }
+                        Scalar::Infix(InfixTerm{ op: rhs_op, ..}) => {
+                            match (op.precedence(), rhs_op.precedence()) {
+                                (Precedence::Low, Precedence::Low) => { *op == InfixOp::Minus }
+                                (Precedence::Low, Precedence::High) => { false }
+                                (Precedence::High, Precedence::Low) => { true }
+                                (Precedence::High, Precedence::High) => { *op == InfixOp::Over }
+                            }
+                        }
+                    };
+                if lhs_needs_parens {
+                    write!(f, "({lhs})")?;
+                } else {
+                    write!(f, "{lhs}")?;
+                }
+                write!(f, "{op}")?;
+                if rhs_needs_parens {
+                    write!(f, "({rhs})")?;
+                } else {
+                    write!(f, "{rhs}")?;
+                }
+                Ok(())
             }
         }
     }
