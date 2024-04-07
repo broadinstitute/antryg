@@ -59,7 +59,7 @@ impl Display for Infix {
     }
 }
 
-impl<L: Expr, R: Expr> Expr for Infix<L, R> {
+impl Infix {
     fn precedence(&self) -> Precedence {
         self.op.precedence()
     }

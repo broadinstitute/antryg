@@ -1,6 +1,7 @@
-mod var;
+pub(crate) mod var;
 mod num;
 mod infix;
+mod tag;
 
 use std::fmt::Display;
 
