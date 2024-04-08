@@ -1,5 +1,5 @@
 use std::fmt::{Display, Formatter};
-use crate::expr::{Expr, Precedence};
+use crate::expr::Precedence;
 use crate::slate;
 
 #[derive(Clone, Copy, Eq, PartialEq)]
@@ -8,7 +8,6 @@ pub(crate) enum Op {
     Minus,
     Times,
     Over,
-    Power,
 }
 
 pub(crate) struct Infix {
@@ -22,45 +21,32 @@ impl Op {
         match self {
             Op::Plus | Op::Minus => Precedence::Sum,
             Op::Times | Op::Over => Precedence::Product,
-            Op::Power => Precedence::Power,
         }
     }
-    fn symbol(&self) -> &'static str {
+    pub(crate) fn symbol(&self) -> &'static str {
         match self {
             Op::Plus => "+",
             Op::Minus => "-",
             Op::Times => "*",
             Op::Over => "/",
-            Op::Power => "^",
         }
     }
-    fn rhs_peer_needs_parens(&self) -> bool {
+    pub(crate) fn rhs_peer_needs_parens(&self) -> bool {
         match self {
             Op::Plus | Op::Minus => false,
-            Op::Times | Op::Over | Op::Power => true,
+            Op::Times | Op::Over => true,
         }
     }
 }
 
-impl Display for Infix {
+impl Display for Op {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        if self.lhs.precedence() < self.precedence() {
-            write!(f, "({})", self.lhs)?;
-        } else {
-            write!(f, "{}", self.lhs)?;
-        }
-        write!(f, "{}", self.op.symbol())?;
-        if (self.rhs.precedence() < self.precedence()) ||
-            ((self.rhs.precedence() == self.precedence()) && self.op.rhs_peer_needs_parens()) {
-            write!(f, "({})", self.rhs)
-        } else {
-            write!(f, "{}", self.rhs)
-        }
+        write!(f, "{}", self.symbol())
     }
 }
 
 impl Infix {
-    fn precedence(&self) -> Precedence {
+    pub(crate) fn precedence(&self) -> Precedence {
         self.op.precedence()
     }
 }

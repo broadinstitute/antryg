@@ -1,11 +1,91 @@
 use std::collections::BTreeMap;
+use std::fmt::Formatter;
+use std::sync::RwLock;
 use uuid::Uuid;
 use crate::expr::Expr;
+use crate::expr::var::Var;
+use crate::expr::tag::ExprTag;
+use crate::expr::Precedence;
+use crate::expr::infix::{Infix, Op};
 
 #[derive(Clone, Copy, Eq, PartialEq, Ord, PartialOrd)]
 pub struct Key {
     uuid: Uuid
 }
 pub(crate) struct Slate {
-    exprs: BTreeMap<Key, Expr>
+    exprs: RwLock<BTreeMap<Key, Expr>>
+}
+
+impl Key {
+    fn new() -> Self {
+        Key { uuid: Uuid::new_v4() }
+    }
+}
+impl Slate {
+    pub(crate) fn new() -> Self {
+        Slate { exprs: RwLock::new(BTreeMap::new()) }
+    }
+
+    fn new_var(&self, name: String) -> ExprTag {
+        let key = Key::new();
+        self.exprs.write().unwrap().insert(key, Expr::Var(Var::from(name)));
+        ExprTag::new(self, key)
+    }
+
+    pub(crate) fn new_var_str(&self, name: &'static str) -> ExprTag {
+        self.new_var(name.into())
+    }
+
+    pub(crate) fn precedence(&self, key: &Key) -> Precedence {
+        match self.exprs.read().unwrap().get(key) {
+            None => Precedence::Sum,
+            Some(expr) => {
+                match expr {
+                    Expr::Var(_) => Precedence::Atom,
+                    Expr::Num(_) => Precedence::Atom,
+                    Expr::Infix(infix) => infix.precedence()
+                }
+            }
+        }
+    }
+    const UNKNOWN_EXPR: &'static str = "???";
+    pub(crate) fn fmt_expr(&self, key: &Key, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self.exprs.read().unwrap().get(key) {
+            None => { write!(f, "{}", Self::UNKNOWN_EXPR) }
+            Some(expr) => {
+                match expr {
+                    Expr::Var(var) => write!(f, "{}", var),
+                    Expr::Num(num) => write!(f, "{}", num),
+                    Expr::Infix(infix) => {
+                        let lhs_needs_parens =
+                            self.precedence(&infix.lhs) < infix.precedence();
+                        if lhs_needs_parens { write!(f, "(")?; }
+                        self.fmt_expr(&infix.lhs, f)?;
+                        if lhs_needs_parens { write!(f, ")")?; }
+                        write!(f, "{}", infix.op)?;
+                        let rhs_needs_parens =
+                            self.precedence(&infix.rhs) < infix.precedence() ||
+                            (self.precedence(&infix.rhs) == infix.precedence() &&
+                                infix.op.rhs_peer_needs_parens());
+                        if rhs_needs_parens { write!(f, "(")?; }
+                        self.fmt_expr(&infix.rhs, f)?;
+                        if rhs_needs_parens { write!(f, ")")?; }
+                        Ok(())
+                    },
+                }
+            }
+        }
+    }
+
+    pub(crate) fn new_num(&self, value: u64) -> ExprTag {
+        let key = Key::new();
+        self.exprs.write().unwrap().insert(key, Expr::Num(value.into()));
+        ExprTag::new(self, key)
+    }
+
+    pub(crate) fn new_infix(&self, op: Op, lhs: Key, rhs: Key) -> ExprTag {
+        let key = Key::new();
+        self.exprs.write().unwrap().insert(key, Expr::Infix(Infix { op, lhs, rhs }));
+        ExprTag::new(self, key)
+    }
 }

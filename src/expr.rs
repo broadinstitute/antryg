@@ -1,13 +1,11 @@
 pub(crate) mod var;
 mod num;
-mod infix;
-mod tag;
-
-use std::fmt::Display;
+pub(crate) mod infix;
+pub(crate) mod tag;
 
 #[derive(Clone, Copy, Eq, PartialEq, Ord, PartialOrd)]
-enum Precedence {
-    Sum, Product, Power, Call, Atom
+pub(crate) enum Precedence {
+    Sum, Product, Atom
 }
 
 pub(crate) enum Expr {
@@ -31,15 +29,5 @@ impl From<&'static str> for Expr {
 impl From<String> for Expr {
     fn from(name: String) -> Self {
         Expr::Var(var::Var::from(name))
-    }
-}
-
-impl Display for Expr {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Expr::Var(var) => write!(f, "{}", var),
-            Expr::Num(num) => write!(f, "{}", num),
-            Expr::Infix(infix) => write!(f, "{}", infix),
-        }
     }
 }

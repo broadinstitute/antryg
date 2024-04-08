@@ -1,5 +1,4 @@
 use std::fmt::{Display, Formatter};
-use crate::expr::{Expr, Precedence};
 
 #[derive(Clone, Copy, Eq, PartialEq, Ord, PartialOrd)]
 pub(crate) struct Num {
