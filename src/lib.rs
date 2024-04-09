@@ -14,4 +14,5 @@ pub fn example() {
     println!("{}", x / y);
     println!("{}", (x / y) / (y / x));
     println!("{}", two * x * x + y * y);
+    println!("{}", two * x.pow(two) + two * x + two);
 }

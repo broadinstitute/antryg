@@ -73,3 +73,9 @@ impl<'a> Div for ExprTag<'a> {
         self.slate.new_infix(Op::Over, self.key, rhs.key)
     }
 }
+
+impl<'a> ExprTag<'a> {
+    pub fn pow(self, rhs: Self) -> Self {
+        self.slate.pow(self.key, rhs.key)
+    }
+}

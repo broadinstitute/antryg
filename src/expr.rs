@@ -2,6 +2,7 @@ pub(crate) mod var;
 mod num;
 pub(crate) mod infix;
 pub(crate) mod tag;
+pub(crate) mod fun;
 
 #[derive(Clone, Copy, Eq, PartialEq, Ord, PartialOrd)]
 pub(crate) enum Precedence {
@@ -12,6 +13,7 @@ pub(crate) enum Expr {
     Var(var::Var),
     Num(num::Num),
     Infix(infix::Infix),
+    Fun(fun::Fun)
 }
 
 impl From<u64> for Expr {

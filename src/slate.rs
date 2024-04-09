@@ -7,6 +7,7 @@ use crate::expr::var::Var;
 use crate::expr::tag::ExprTag;
 use crate::expr::Precedence;
 use crate::expr::infix::{Infix, Op};
+use crate::expr::fun::Fun;
 
 #[derive(Clone, Copy, Eq, PartialEq, Ord, PartialOrd)]
 pub struct Key {
@@ -43,7 +44,8 @@ impl Slate {
                 match expr {
                     Expr::Var(_) => Precedence::Atom,
                     Expr::Num(_) => Precedence::Atom,
-                    Expr::Infix(infix) => infix.precedence()
+                    Expr::Infix(infix) => infix.precedence(),
+                    Expr::Fun(_) => Precedence::Atom
                 }
             }
         }
@@ -72,6 +74,17 @@ impl Slate {
                         if rhs_needs_parens { write!(f, ")")?; }
                         Ok(())
                     },
+                    Expr::Fun(fun) => {
+                        match fun {
+                            Fun::Pow(x, y) => {
+                                write!(f, "pow(")?;
+                                self.fmt_expr(x, f)?;
+                                write!(f, ",")?;
+                                self.fmt_expr(y, f)?;
+                                write!(f, ")")
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -86,6 +99,11 @@ impl Slate {
     pub(crate) fn new_infix(&self, op: Op, lhs: Key, rhs: Key) -> ExprTag {
         let key = Key::new();
         self.exprs.write().unwrap().insert(key, Expr::Infix(Infix { op, lhs, rhs }));
+        ExprTag::new(self, key)
+    }
+    pub(crate) fn pow(&self, x: Key, y: Key) -> ExprTag {
+        let key = Key::new();
+        self.exprs.write().unwrap().insert(key, Expr::Fun(Fun::Pow(x, y)));
         ExprTag::new(self, key)
     }
 }
