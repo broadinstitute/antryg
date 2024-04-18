@@ -6,13 +6,6 @@ pub fn example() {
     let x = slate.new_var_str("x");
     let y = slate.new_var_str("y");
     let two = slate.new_num(2);
-    let matrix2 = slate.new_matrix_fill(2, 2, |i, j| {
-        if i == 0 {
-            x
-        } else {
-            y
-        }
-    });
     println!("x = {x}");
     println!("y = {y}");
     println!("{}", x + y);

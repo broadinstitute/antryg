@@ -1,13 +1,15 @@
 use std::collections::BTreeMap;
 use std::fmt::Formatter;
 use std::sync::RwLock;
+
 use uuid::Uuid;
-use crate::expr::{Expr, matrix};
-use crate::expr::var::Var;
-use crate::expr::tag::ExprTag;
-use crate::expr::Precedence;
-use crate::expr::infix::{Infix, Op};
+
+use crate::expr::Expr;
 use crate::expr::fun::Fun;
+use crate::expr::infix::{Infix, Op};
+use crate::expr::Precedence;
+use crate::expr::tag::ExprTag;
+use crate::expr::var::Var;
 
 #[derive(Clone, Copy, Eq, PartialEq, Ord, PartialOrd)]
 pub struct Key {
@@ -46,7 +48,6 @@ impl Slate {
                     Expr::Num(_) => Precedence::Atom,
                     Expr::Infix(infix) => infix.precedence(),
                     Expr::Fun(_) => Precedence::Atom,
-                    Expr::Matrix(_) => Precedence::Atom,
                 }
             }
         }
@@ -86,20 +87,6 @@ impl Slate {
                             }
                         }
                     }
-                    Expr::Matrix(matrix) => {
-                        write!(f, "[")?;
-                        for i_row in 0..matrix.n_rows {
-                            if i_row > 0 { write!(f, ",")?; }
-                            write!(f, "[")?;
-                            for i_col in 0..matrix.n_cols {
-                                if i_col > 0 { write!(f, ",")?; }
-                                self.fmt_expr(&matrix[i_row][i_col], f)?;
-                            }
-                            write!(f, "]")?;
-                        }
-                        write!(f, "]")?;
-                        Ok(())
-                    }
                 }
             }
         }
@@ -119,13 +106,6 @@ impl Slate {
     pub(crate) fn pow(&self, x: Key, y: Key) -> ExprTag {
         let key = Key::new();
         self.exprs.write().unwrap().insert(key, Expr::Fun(Fun::Pow(x, y)));
-        ExprTag::new(self, key)
-    }
-    pub(crate) fn new_matrix_fill(&self, n_rows: usize, n_cols: usize,
-                                  f: impl Fn(usize, usize) -> Key) -> ExprTag {
-        let key = Key::new();
-        let matrix = matrix::Matrix::fill(n_rows, n_cols, f);
-        self.exprs.write().unwrap().insert(key, Expr::Matrix(matrix));
         ExprTag::new(self, key)
     }
 }

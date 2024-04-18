@@ -15,7 +15,6 @@ pub(crate) enum Expr {
     Num(num::Num),
     Infix(infix::Infix),
     Fun(fun::Fun),
-    Matrix(matrix::Matrix)
 }
 
 impl From<u64> for Expr {
