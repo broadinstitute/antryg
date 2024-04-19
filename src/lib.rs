@@ -1,5 +1,7 @@
 mod expr;
 mod slate;
+pub mod config;
+pub mod error;
 
 pub fn example() {
     let slate = slate::Slate::new();
