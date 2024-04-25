@@ -76,12 +76,14 @@ pub fn mahal(config: MahalConfig) -> Result<(), Error> {
     let n_endos = config.n_endos;
     let n_traits = config.n_traits;
     let vars = Var::list(n_endos, n_traits);
-    writeln!(writer, "x: [{}];", prefixed("", &vars))?;
+    let args =
+        vars.iter().map(|var| var.to_string()).collect::<Vec<String>>().join(",");
+    writeln!(writer, "x(args) := [{}];", prefixed("", &vars))?;
     writeln!(writer, "mu: [{}];", prefixed("mu_", &vars))?;
-    writeln!(writer, "xm: x - mu;")?;
+    writeln!(writer, "xm({args}) := x({args}) - mu;")?;
     let matrix = precision_matrix(&vars, n_traits);
     writeln!(writer, "Lam: {};", matrix_to_max(matrix))?;
-    writeln!(writer, "L1: xm . Lam . xm;")?;
+    writeln!(writer, "L1({args}) := xm({args}) . Lam . xm({args});")?;
     for i_endo in 0..n_endos {
         writeln!(writer, "assume(tau_{i_endo} > 0);")?;
     }
@@ -107,14 +109,11 @@ pub fn mahal(config: MahalConfig) -> Result<(), Error> {
         (0..n_traits).map(|i_trait|
             format!("((T_{i_trait} - O_{i_trait})/s_{i_trait})^2")
         ).collect::<Vec<String>>().join("+");
-    writeln!(writer, "L2: {} + {} + {};", e_sum, e_t_sum, t_sum)?;
-    writeln!(writer, "D: L1 - L2;")?;
-    let args =
-        vars.iter().map(|var| var.to_string()).collect::<Vec<String>>().join(",");
-    let l_func = format!("L({args})");
-    // writeln!(writer, "{l_func} := L2;")?;
-    // for var in vars {
-    //     writeln!(writer, "diff({l_func}), {var};")?;
-    // }
+    writeln!(writer, "L2({args}) := {} + {} + {};", e_sum, e_t_sum, t_sum)?;
+    writeln!(writer, "D({args}) := L1({args}) - L2({args});")?;
+    let l_func = format!("L2({args})");
+    for var in vars {
+        writeln!(writer, "define(L_{var}({args}), diff({l_func}, {var}));")?;
+    }
     Ok(())
 }
