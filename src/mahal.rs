@@ -112,8 +112,11 @@ pub fn mahal(config: MahalConfig) -> Result<(), Error> {
     writeln!(writer, "L2({args}) := {} + {} + {};", e_sum, e_t_sum, t_sum)?;
     writeln!(writer, "D({args}) := L1({args}) - L2({args});")?;
     let l_func = format!("L2({args})");
-    for var in vars {
+    for var in &vars {
         writeln!(writer, "define(L_{var}({args}), diff({l_func}, {var}));")?;
     }
+    let derivatives =
+        vars.iter().map(|var| format!("L_{var}({args})")).collect::<Vec<String>>();
+    writeln!(writer, "solve([{}], [{args}]);", derivatives.join(","))?;
     Ok(())
 }
