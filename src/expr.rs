@@ -3,7 +3,6 @@ mod num;
 pub(crate) mod infix;
 pub(crate) mod tag;
 pub(crate) mod fun;
-pub(crate) mod matrix;
 
 #[derive(Clone, Copy, Eq, PartialEq, Ord, PartialOrd)]
 pub(crate) enum Precedence {

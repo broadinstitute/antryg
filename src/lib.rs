@@ -1,10 +1,24 @@
+use crate::config::Config;
+
 mod expr;
 mod slate;
 pub mod config;
 pub mod error;
 pub mod mahal;
 mod out;
+pub mod marge;
+mod joydis;
 
+pub fn run(config: Config) -> Result<(), error::Error> {
+    match config {
+        Config::Example => {
+            example();
+            Ok(())
+        }
+        Config::Mahal(config) => { mahal::mahal(config) }
+        Config::Marge(config) => { marge::marge(config) }
+    }
+}
 pub fn example() {
     let slate = slate::Slate::new();
     let x = slate.new_var_str("x");

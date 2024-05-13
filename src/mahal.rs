@@ -1,28 +1,9 @@
-use std::fmt::Display;
 use crate::config::MahalConfig;
 use crate::error::Error;
 use crate::out::OutWriter;
 use std::io::Write;
+use crate::joydis::Var;
 
-#[derive(Debug, Ord, PartialOrd, Eq, PartialEq)]
-enum Var { E(usize), T(usize) }
-
-impl Var {
-    pub(crate) fn list(n_endos: usize, n_traits: usize) -> Vec<Var> {
-        (0..n_endos).map(Var::E)
-            .chain((0..n_traits).map(Var::T))
-            .collect()
-    }
-}
-
-impl Display for Var {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Var::E(i_endo) => write!(f, "E_{}", i_endo),
-            Var::T(i_trait) => write!(f, "T_{}", i_trait),
-        }
-    }
-}
 
 fn prefixed(pre: &str, list: &[Var]) -> String {
     list.iter().map(|v| format!("{}{}", pre, v)).collect::<Vec<String>>().join(",")
@@ -71,7 +52,7 @@ fn matrix_to_max(matrix: Vec<Vec<String>>) -> String {
     format!("matrix({})", rows)
 }
 
-pub fn mahal(config: MahalConfig) -> Result<(), Error> {
+pub(crate) fn mahal(config: MahalConfig) -> Result<(), Error> {
     let mut writer = OutWriter::new(config.out)?;
     let n_endos = config.n_endos;
     let n_traits = config.n_traits;

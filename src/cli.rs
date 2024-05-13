@@ -1,12 +1,13 @@
 use clap::{Arg, command};
-use antryg::config::{Config, MahalConfig};
+use antryg::config::{Config, MahalConfig, MargeConfig};
 use antryg::error::Error;
 
 mod commands {
     pub(crate) const EXAMPLE: &str = "example";
     pub(crate) const MAHAL: &str = "mahal";
+    pub(crate) const MARGE: &str = "marge";
     pub(crate) const VALID_LIST: &str =
-        "currently the only valid commands are `example' and 'mahal'.";
+        "currently the only valid commands are `example', 'mahal' and 'marge.";
 }
 
 struct MyArg {
@@ -59,6 +60,13 @@ pub(crate) fn get_config() -> Result<Config, Error> {
                     .required(true))
                 .arg(new_arg(&args::OUT))
         )
+        .subcommand(
+            command!(commands::MARGE).about("Run Marge example")
+                .arg(new_arg(&args::N_ENDOS).value_parser(clap::value_parser!(usize))
+                    .required(true))
+                .arg(new_arg(&args::N_TRAITS).value_parser(clap::value_parser!(usize))
+                    .required(true))
+        )
         .get_matches();
     match matches.subcommand() {
         Some((commands::EXAMPLE, _)) => { Ok(Config::Example) }
@@ -73,6 +81,17 @@ pub(crate) fn get_config() -> Result<Config, Error> {
                 })?;
             let out = sub_matches.get_one::<String>("out").cloned();
             Ok(Config::Mahal(MahalConfig { n_endos, n_traits, out }))
+        }
+        Some((commands::MARGE, sub_matches)) => {
+            let n_endos =
+                sub_matches.get_one::<usize>("n_endos").cloned().ok_or_else(|| {
+                    missing_option_error(&args::N_ENDOS)
+                })?;
+            let n_traits =
+                sub_matches.get_one::<usize>("n_traits").cloned().ok_or_else(|| {
+                    missing_option_error(&args::N_TRAITS)
+                })?;
+            Ok(Config::Marge(MargeConfig { n_endos, n_traits }))
         }
         Some((subcommand, _)) => {
             Err(Error::from(
