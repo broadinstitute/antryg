@@ -36,13 +36,13 @@ impl Error {
     pub fn wrapped_str(self, message: String) -> Self {
         self.wrapped(message.to_string())
     }
-    pub fn wrap_err<T, E>(result: Result<T, E>, message: String) -> Result<T, Error>
-        where E: Into<Error> {
-        result.map_err(|error| Error::wrap(message, error))
+    pub fn wrap_err<T, E, M>(result: Result<T, E>, message: M) -> Result<T, Error>
+        where E: Into<Error>, M: FnOnce() -> String {
+        result.map_err(|error| Error::wrap(message(), error))
     }
     pub fn wrap_err_str<T, E>(result: Result<T, E>, message: &str) -> Result<T, Error>
         where E: Into<Error> {
-        Error::wrap_err(result, message.to_string())
+        Error::wrap_err(result, || message.to_string())
     }
 }
 

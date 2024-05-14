@@ -1,6 +1,7 @@
 use std::fs::File;
 use std::io;
 use std::io::{BufWriter, Stdout, Write};
+use std::path::PathBuf;
 use crate::error::Error;
 
 pub(crate) enum OutWriter {
@@ -9,8 +10,13 @@ pub(crate) enum OutWriter {
 }
 
 impl OutWriter {
-    fn new_file(name: &str) -> Result<Self, Error> {
+    pub(crate) fn new_file(name: &str) -> Result<Self, Error> {
         let file = Error::wrap_err_str(File::create(name), name)?;
+        Ok(OutWriter::File(BufWriter::new(file)))
+    }
+    pub(crate) fn new_path(name: &PathBuf) -> Result<Self, Error> {
+        let file =
+            Error::wrap_err(File::create(name), || name.to_string_lossy().to_string())?;
         Ok(OutWriter::File(BufWriter::new(file)))
     }
     fn new_stdout() -> Self {

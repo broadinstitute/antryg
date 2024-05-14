@@ -2,7 +2,7 @@ use crate::config::MahalConfig;
 use crate::error::Error;
 use crate::out::OutWriter;
 use std::io::Write;
-use crate::joydis::Var;
+use crate::joidis::{Var, write_joint_likelihood};
 
 
 fn prefixed(pre: &str, list: &[Var]) -> String {
@@ -56,35 +56,7 @@ pub(crate) fn mahal(config: MahalConfig) -> Result<(), Error> {
     let mut writer = OutWriter::new(config.out)?;
     let n_endos = config.n_endos;
     let n_traits = config.n_traits;
-    let vars = Var::list(n_endos, n_traits);
-    let args =
-        vars.iter().map(|var| var.to_string()).collect::<Vec<String>>().join(",");
-    for i_endo in 0..n_endos {
-        writeln!(writer, "assume(tau_{i_endo} > 0);")?;
-    }
-    for i_trait in 0..n_traits {
-        writeln!(writer, "assume(sigma_{i_trait} > 0);")?;
-    }
-    for i_trait in 0..n_traits {
-        writeln!(writer, "assume(s_{i_trait} > 0);")?;
-    }
-    let e_sum =
-        (0..n_endos).map(|i_endo|
-            format!("((E_{i_endo} - mu_{i_endo})/tau_{i_endo})^2")
-        ).collect::<Vec<String>>().join("+");
-    let e_t_sum =
-        (0..n_traits).map(|i_trait| {
-            let beta_sum =
-                (0..n_endos).map(|i_endo|
-                    format!("beta_{i_endo}_{i_trait}*E_{i_endo}")
-                ).collect::<Vec<String>>().join("+");
-            format!("((T_{i_trait} - ({beta_sum}))/sigma_{i_trait})^2")
-        }).collect::<Vec<String>>().join("+");
-    let t_sum =
-        (0..n_traits).map(|i_trait|
-            format!("((T_{i_trait} - O_{i_trait})/s_{i_trait})^2")
-        ).collect::<Vec<String>>().join("+");
-    writeln!(writer, "L({args}) := {} + {} + {};", e_sum, e_t_sum, t_sum)?;
+    let (vars, args) = write_joint_likelihood(&mut writer, n_endos, n_traits)?;
     let l_func = format!("L({args})");
     for var in &vars {
         writeln!(writer, "define(L_{var}({args}), diff({l_func}, {var}));")?;

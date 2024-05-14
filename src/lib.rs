@@ -7,7 +7,7 @@ pub mod error;
 pub mod mahal;
 mod out;
 pub mod marge;
-mod joydis;
+mod joidis;
 
 pub fn run(config: Config) -> Result<(), error::Error> {
     match config {
